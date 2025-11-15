@@ -1,4 +1,3 @@
-// main.cpp
 #include <stdio.h>
 #include <chrono>
 #include <thread>
@@ -75,65 +74,65 @@ void main()
 
 static GLuint compile_shader(GLenum type, const char* src)
 {
-    GLuint s = glCreateShader(type);
-    glShaderSource(s, 1, &src, NULL);
-    glCompileShader(s);
+   GLuint s = glCreateShader(type);
+   glShaderSource(s, 1, &src, NULL);
+   glCompileShader(s);
 
-    GLint ok = 0;
-    glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
-    if (!ok)
-    {
-        char buf[1024];
-        glGetShaderInfoLog(s, sizeof(buf), NULL, buf);
-        fprintf(stderr, "Shader compile error: %s\n", buf);
-    }
-    return s;
+   GLint ok = 0;
+   glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
+   if (!ok)
+   {
+      char buf[1024];
+      glGetShaderInfoLog(s, sizeof(buf), NULL, buf);
+      fprintf(stderr, "Shader compile error: %s\n", buf);
+   }
+   return s;
 }
 
 static GLuint create_program(const char* vs, const char* fs)
 {
-    GLuint vs_s = compile_shader(GL_VERTEX_SHADER, vs);
-    GLuint fs_s = compile_shader(GL_FRAGMENT_SHADER, fs);
-    GLuint prog = glCreateProgram();
-    glAttachShader(prog, vs_s);
-    glAttachShader(prog, fs_s);
-    glLinkProgram(prog);
-    GLint ok = 0;
-    glGetProgramiv(prog, GL_LINK_STATUS, &ok);
-    if (!ok)
-    {
-        char buf[1024];
-        glGetProgramInfoLog(prog, sizeof(buf), NULL, buf);
-        fprintf(stderr, "Program link error: %s\n", buf);
-    }
-    glDeleteShader(vs_s);
-    glDeleteShader(fs_s);
-    return prog;
+   GLuint vs_s = compile_shader(GL_VERTEX_SHADER, vs);
+   GLuint fs_s = compile_shader(GL_FRAGMENT_SHADER, fs);
+   GLuint prog = glCreateProgram();
+   glAttachShader(prog, vs_s);
+   glAttachShader(prog, fs_s);
+   glLinkProgram(prog);
+   GLint ok = 0;
+   glGetProgramiv(prog, GL_LINK_STATUS, &ok);
+   if (!ok)
+   {
+      char buf[1024];
+      glGetProgramInfoLog(prog, sizeof(buf), NULL, buf);
+      fprintf(stderr, "Program link error: %s\n", buf);
+   }
+   glDeleteShader(vs_s);
+   glDeleteShader(fs_s);
+   return prog;
 }
 
 // Build unit-cube (centered at origin) line vertices for wireframe
 // We'll scale this in model matrix to get cuboid size.
 void buildUnitCubeLines(std::vector<glm::vec3>& outVerts, std::vector<unsigned int>& outIdx)
 {
-    // 8 cube corners
-    outVerts = {
-        {-0.5f, -0.5f, -0.5f}, // 0
-        { 0.5f, -0.5f, -0.5f}, // 1
-        { 0.5f,  0.5f, -0.5f}, // 2
-        {-0.5f,  0.5f, -0.5f}, // 3
-        {-0.5f, -0.5f,  0.5f}, // 4
-        { 0.5f, -0.5f,  0.5f}, // 5
-        { 0.5f,  0.5f,  0.5f}, // 6
-        {-0.5f,  0.5f,  0.5f}  // 7
-    };
+   // 8 cube corners
+   outVerts = {
+      {-0.5f, -0.5f, -0.5f}, // 0
+      { 0.5f, -0.5f, -0.5f}, // 1
+      { 0.5f,  0.5f, -0.5f}, // 2
+      {-0.5f,  0.5f, -0.5f}, // 3
+      {-0.5f, -0.5f,  0.5f}, // 4
+      { 0.5f, -0.5f,  0.5f}, // 5
+      { 0.5f,  0.5f,  0.5f}, // 6
+      {-0.5f,  0.5f,  0.5f}  // 7
+   };
 
-    // lines as pairs of indices (12 edges -> 24 indices)
-    unsigned int idxs[] = {
-        0,1, 1,2, 2,3, 3,0, // bottom ring (z=-0.5)
-        4,5, 5,6, 6,7, 7,4, // top ring (z=+0.5)
-        0,4, 1,5, 2,6, 3,7  // vertical edges
-    };
-    outIdx.assign(idxs, idxs + sizeof(idxs)/sizeof(unsigned int));
+   // lines as pairs of indices (12 edges -> 24 indices)
+   unsigned int idxs[] = {
+      0,1, 1,2, 2,3, 3,0, // bottom ring (z=-0.5)
+      4,5, 5,6, 6,7, 7,4, // top ring (z=+0.5)
+      0,4, 1,5, 2,6, 3,7  // vertical edges
+   };
+   outIdx.assign(idxs, idxs + sizeof(idxs)/sizeof(unsigned int));
 }
 
 int main(int argc, char* argv[])
@@ -189,7 +188,7 @@ int main(int argc, char* argv[])
    // Initialize opengl
    GLCALL(glClearColor(0.15f, 0.15f, 0.15f, 1.0f));
 
-   // enable blending and depth test
+   // Enable blending and depth test
    GLCALL(glEnable(GL_BLEND));
    GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
    GLCALL(glEnable(GL_DEPTH_TEST));
@@ -227,7 +226,6 @@ int main(int argc, char* argv[])
    GLCALL(glGenBuffers(1, &pointVBO));
    GLCALL(glBindVertexArray(pointVAO));
    GLCALL(glBindBuffer(GL_ARRAY_BUFFER, pointVBO));
-   // allocate once, will update per-frame with glBufferSubData
    GLCALL(glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW));
    GLCALL(glEnableVertexAttribArray(0));
    GLCALL(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0));
@@ -253,14 +251,15 @@ int main(int argc, char* argv[])
    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
    glBindVertexArray(0);
 
-   // Camera setup: cameraPos is arbitrary but must be looking at origin
-   // This satisfies "camera pointed at the origin".
-   glm::vec3 cameraPos = glm::vec3(0.0f, -20.0f, 10.0f);
+   // Camera setup, looking at origin
+   glm::vec3 cameraPos = glm::vec3(-10.0f, -20.0f, 10.0f);
    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
    glm::vec3 cameraUp = glm::vec3(0.0f, 0.0f, 1.0f);
+   bool draw_axes = true;
+   bool draw_ground_plane = true;
 
    // Projection matrix
-   glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
+   glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
    // set frame rate to 60 Hz
    using framerate = std::chrono::duration<double, std::ratio<1, 60>>;
@@ -283,7 +282,6 @@ int main(int argc, char* argv[])
       ImGui_ImplGlfw_NewFrame();
       ImGui::NewFrame();
 
-      // ---------- ImGui UI (unchanged, minus slight ordering to render 3D afterwards) ----------
       ImGui::Begin("Cuboid Intersection");
 
       ImGui::BeginChild("Sphere (Bullet)", ImVec2(0, 110), ImGuiChildFlags_Borders);
@@ -356,7 +354,24 @@ int main(int argc, char* argv[])
 
       ImGui::EndChild();
 
-      // Run cuboid intersection stuff here
+      ImGui::BeginChild("Camera", ImVec2(0, 130), ImGuiChildFlags_Borders);
+      ImGui::SeparatorText("Camera Location (East, North, Up)");
+
+      ImGui::InputFloat3("Position##Camera", &cameraPos.x);
+      ImGui::SliderFloat3("Position##CameraSlider", &cameraPos.x, -35.0f, 35.0f);
+
+      ImGui::Checkbox("Axes", &draw_axes);
+      ImGui::SameLine();
+      ImGui::Checkbox("Ground", &draw_ground_plane);
+
+      if (ImGui::Button("Reset"))
+      {
+         cameraPos = glm::vec3(-10.0f, -20.0f, 10.0f);
+      }
+
+      ImGui::EndChild();
+
+      // Run cuboid intersection
       entity.SetYaw_D(entity_hdg);
 
       C_vector poc;
@@ -380,14 +395,123 @@ int main(int argc, char* argv[])
 
       ImGui::End();
 
-      // ---------- 3D rendering ----------
+      /////////////////////////////////////////////////////////////////////////
+      // 3D Rendering
+      /////////////////////////////////////////////////////////////////////////
       GLCALL(glViewport(0, 0, WIDTH, HEIGHT));
       GLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
       // Build view matrix (camera looking at origin)
       glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
 
-      // ---------------------- Draw line from sphere → cuboid center ----------------------
+      glUseProgram(program);
+
+      // Draw ground
+      if (draw_ground_plane)
+      {
+         glm::vec3 quadVerts[4] = {
+            { -1000.0f, -1000.0f, 0.0f },
+            { -1000.0f,  1000.0f, 0.0f },
+            {  1000.0f,  1000.0f, 0.0f },
+            {  1000.0f, -1000.0f, 0.0f }
+         };
+
+         glm::mat4 mvpFace = projection * view * glm::mat4(1.0f);
+
+         glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpFace[0][0]);
+         glUniform4f(loc_uColor, 0.5f, 0.5f, 0.5f, 0.3f);
+
+         glBindVertexArray(faceVAO);
+         glBindBuffer(GL_ARRAY_BUFFER, faceVBO);
+         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quadVerts), quadVerts);
+         //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+         for (int x = -100; x <= 100; x += 1)
+         {
+            if (x == 0)
+               continue;
+
+            glm::vec3 pos1 = glm::vec3((float)x, -1000.0, 0.0);
+            glm::vec3 pos2 = glm::vec3((float)x, 1000.0, 0.0);
+
+            glUniform4f(loc_uColor, 1.0f, 1.0f, 1.0f, 0.2f);
+
+            glm::vec3 line[2] = { pos1, pos2 };
+
+            glLineWidth(1.0);
+            glBindVertexArray(lineVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+            glDrawArrays(GL_LINES, 0, 2);
+         }
+
+         for (int y = -100; y <= 100; y += 1)
+         {
+            if (y == 0)
+               continue;
+
+            glm::vec3 pos1 = glm::vec3(-1000.0, (float)y, 0.0);
+            glm::vec3 pos2 = glm::vec3(1000.0, (float)y, 0.0);
+
+            glUniform4f(loc_uColor, 1.0f, 1.0f, 1.0f, 0.2f);
+
+            glm::vec3 line[2] = { pos1, pos2 };
+
+            glLineWidth(1.0);
+            glBindVertexArray(lineVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+            glDrawArrays(GL_LINES, 0, 2);
+         }
+      }
+
+      // Draw axes
+      if (draw_axes)
+      {
+         // Draw X axis
+         glm::vec3 pos1 = glm::vec3(-1000.0, 0.0, 0.0);
+         glm::vec3 pos2 = glm::vec3(1000.0, 0.0, 0.0);
+
+         glm::mat4 mvpLine = projection * view * glm::mat4(1.0f);
+
+         glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpLine[0][0]);
+         glUniform4f(loc_uColor, 1.0f, 0.0f, 0.0f, 1.0f);
+
+         glm::vec3 line[2] = { pos1, pos2 };
+
+         glLineWidth(3.0);
+         glBindVertexArray(lineVAO);
+         glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+         glDrawArrays(GL_LINES, 0, 2);
+
+         // Draw Y axis
+         pos1 = glm::vec3(0.0, -1000.0, 0.0);
+         pos2 = glm::vec3(0.0, 1000.0, 0.0);
+
+         glUniform4f(loc_uColor, 0.0f, 1.0f, 0.0f, 1.0f);
+
+         line[0] = pos1;
+         line[1] = pos2;
+
+         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+         glDrawArrays(GL_LINES, 0, 2);
+
+         // Draw Z axis
+         pos1 = glm::vec3(0.0, 0.0, -1000.0);
+         pos2 = glm::vec3(0.0, 0.0, 1000.0);
+
+         glUniform4f(loc_uColor, 0.0f, 0.0f, 1.0f, 1.0f);
+
+         line[0] = pos1;
+         line[1] = pos2;
+
+         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+         glDrawArrays(GL_LINES, 0, 2);
+         glLineWidth(1.0);
+      }
+
+      // Draw line from sphere to cuboid center
       glm::vec3 spherePos(sphere.data[0], sphere.data[1], sphere.data[2]);
       glm::vec3 centerPos(entity.m_vPosition.data[0], 
                            entity.m_vPosition.data[1], 
@@ -395,26 +519,25 @@ int main(int argc, char* argv[])
 
       glm::mat4 mvpLine = projection * view * glm::mat4(1.0f);
 
-      glUseProgram(program);
       glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpLine[0][0]);
       glUniform4f(loc_uColor, 1.0f, 1.0f, 0.0f, 1.0f);  // yellow line
 
       glm::vec3 linePts[2] = { spherePos, centerPos };
 
+      glLineWidth(5.0);
       glBindVertexArray(lineVAO);
       glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
       glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(linePts), linePts);
       glDrawArrays(GL_LINES, 0, 2);
+      glLineWidth(1.0);
 
-
-      // ---------------------- Draw intersection point ----------------------
+      // Draw intersection point
       if (face != -1)
       {
          glm::vec3 pocPos(poc.data[0], poc.data[1], poc.data[2]);
 
          glm::mat4 mvpPoc = projection * view * glm::mat4(1.0f);
 
-         glUseProgram(program);
          glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpPoc[0][0]);
          glUniform4f(loc_uColor, 1.0f, 0.47f, 0.0f, 1.0f);  // orange point
 
@@ -427,34 +550,25 @@ int main(int argc, char* argv[])
       }
 
       // Draw cuboid wireframe
-      GLCALL(glUseProgram(program));
-
-      // Model for entity: translate to position, rotate yaw (heading), scale to cuboid size
       glm::mat4 model = glm::mat4(1.0f);
-      // Note: C_cuboid stores m_vPosition and m_pSize; adjust order/axes as needed for your coordinate system
       model = glm::translate(model, glm::vec3(entity.m_vPosition.data[0], entity.m_vPosition.data[1], entity.m_vPosition.data[2]));
-      // entity.SetYaw_D uses degrees; rotate about Z axis (assuming heading yaw around Z)
       model = glm::rotate(model, glm::radians(-entity_hdg), glm::vec3(0.0f, 0.0f, 1.0f));
-      // sizes: Depth, Width, Height (your code uses m_pSize[0..2] - adapt if different)
       model = glm::scale(model, glm::vec3(entity.m_pSize[0], entity.m_pSize[1], entity.m_pSize[2]));
 
       glm::mat4 mvp = projection * view * model;
       GLCALL(glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvp[0][0]));
-      // wireframe: dark blue
       GLCALL(glUniform4f(loc_uColor, 0.0f, 0.2f, 0.8f, 1.0f));
 
-      // Draw lines
       GLCALL(glBindVertexArray(cubeVAO));
-      GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)); // ensure wireframe
-      // Because we put edges in EBO as pairs, draw with GL_LINES
+      GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
       GLCALL(glDrawElements(GL_LINES, (GLsizei)unitIdx.size(), GL_UNSIGNED_INT, 0));
       GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
       GLCALL(glBindVertexArray(0));
 
-      // Draw sphere position as a point (in world space)
+      // Draw sphere position as a point
       GLCALL(glBindVertexArray(pointVAO));
       GLCALL(glBindBuffer(GL_ARRAY_BUFFER, pointVBO));
-      GLCALL(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3), &spherePos)); // update point position
+      GLCALL(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3), &spherePos));
 
       glm::mat4 modelPoint = glm::translate(glm::mat4(1.0f), spherePos);
       glm::mat4 mvpPoint = projection * view * glm::mat4(1.0f);
@@ -464,10 +578,10 @@ int main(int argc, char* argv[])
       GLCALL(glDrawArrays(GL_POINTS, 0, 1));
       GLCALL(glBindVertexArray(0));
 
-      // Draw cuboid position as a point (in world space)
+      // Draw cuboid position as a point
       GLCALL(glBindVertexArray(pointVAO));
       GLCALL(glBindBuffer(GL_ARRAY_BUFFER, pointVBO));
-      GLCALL(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3), &centerPos)); // update point position
+      GLCALL(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec3), &centerPos));
 
       modelPoint = glm::translate(glm::mat4(1.0f), centerPos);
       mvpPoint = projection * view * glm::mat4(1.0f);
@@ -477,14 +591,11 @@ int main(int argc, char* argv[])
       GLCALL(glDrawArrays(GL_POINTS, 0, 1));
       GLCALL(glBindVertexArray(0));
 
-      // Unbind shader
-      GLCALL(glUseProgram(0));
-
       if (face != -1)
       {
          // Get the face defining corners via C_cuboid helper
          C_vector c0, c1, c2, c3;
-         entity.GetFaceCorners(face, c0, c1, c2, c3); // YOU implement or already have this
+         entity.GetFaceCorners(face, c0, c1, c2, c3);
 
          glm::vec3 quadVerts[4] = {
             { c0.data[0], c0.data[1], c0.data[2] },
@@ -495,22 +606,16 @@ int main(int argc, char* argv[])
 
          glm::mat4 mvpFace = projection * view * glm::mat4(1.0f);
 
-         glUseProgram(program);
          glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpFace[0][0]);
-         glUniform4f(loc_uColor, 0.0f, 0.8f, 1.0f, 0.3f);  // cyan-ish, transparent
-
-         glEnable(GL_BLEND);
-         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+         glUniform4f(loc_uColor, 0.0f, 0.8f, 1.0f, 0.3f);
 
          glBindVertexArray(faceVAO);
          glBindBuffer(GL_ARRAY_BUFFER, faceVBO);
          glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quadVerts), quadVerts);
-
-         // Draw 2 triangles
          glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
       }
 
-      // Render ImGui on top
+      // Render ImGui
       ImGui::Render();
       ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -535,4 +640,3 @@ int main(int argc, char* argv[])
 
    return 0;
 }
-
