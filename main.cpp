@@ -139,9 +139,21 @@ int main(int argc, char* argv[])
 {
    GLFWwindow* window = nullptr;
 
-   C_vector sphere(10.0, 0.0, 0.0);
-   C_cuboid entity(C_vector(0.0), 2.0, 2.0, 2.0);
-   float    entity_hdg = 0.0;
+// Collision with 10002 is valid, 10005 is wrong
+// 78,10170,301560.658102,524332.664136,-6.904564,1
+// 78,10002,301560.640654,524333.774842,-7.500000,
+//          301560.640654,524333.774842,-7.500000,2.800000,3.000000,8.800000,0.000000
+// 78,10003,301565.888491,524200.522667,-7.500000,
+//          301565.888491,524200.522667,-7.500000,2.800000,3.000000,8.800000,130.835175
+// 78,10004,301652.633129,524295.553189,-7.500000,
+//          301652.633129,524295.553189,-7.500000,3.150000,2.450000,6.720000,95.548294
+// 78,10005,301661.585329,524176.175991,-15.240000,
+//          301661.585329,524176.175991,-15.240000,2.690000,8.970000,22.350000,0.000000
+// 78,10006,301596.758454,524418.595486,-15.492136,
+//          301596.758454,524418.595486,-15.492136,5.600000,6.700000,19.200001,90.541252
+   C_vector sphere(301560.658102,524332.664136,-6.904564);
+   C_cuboid entity(C_vector(301661.585329,524176.175991,-15.24), 2.690000,8.970000,22.35);
+   float    entity_hdg = 2.6e-13;
 
    // initialize glfw
    if (!glfwInit())
@@ -191,7 +203,6 @@ int main(int argc, char* argv[])
    // Enable blending and depth test
    GLCALL(glEnable(GL_BLEND));
    GLCALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-   GLCALL(glEnable(GL_DEPTH_TEST));
 
    // Create shader program
    GLuint program = create_program(vs_src, fs_src);
@@ -257,6 +268,7 @@ int main(int argc, char* argv[])
    glm::vec3 cameraUp = glm::vec3(0.0f, 0.0f, 1.0f);
    bool draw_axes = true;
    bool draw_ground_plane = true;
+   bool enable_blending = true;
 
    // Projection matrix
    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
@@ -364,6 +376,15 @@ int main(int argc, char* argv[])
       ImGui::SameLine();
       ImGui::Checkbox("Ground", &draw_ground_plane);
 
+      ImGui::SameLine();
+      if (ImGui::Checkbox("Blend", &enable_blending))
+      {
+         if (enable_blending)
+            glEnable(GL_BLEND);
+         else
+            glDisable(GL_BLEND);
+      }
+
       if (ImGui::Button("Reset"))
       {
          cameraPos = glm::vec3(-10.0f, -20.0f, 10.0f);
@@ -372,7 +393,7 @@ int main(int argc, char* argv[])
       ImGui::EndChild();
 
       // Run cuboid intersection
-      entity.SetYaw_D(entity_hdg);
+      entity.SetYaw(glm::radians(entity_hdg));
 
       C_vector poc;
       double   miss_distance;
@@ -405,65 +426,6 @@ int main(int argc, char* argv[])
       glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
 
       glUseProgram(program);
-
-      // Draw ground
-      if (draw_ground_plane)
-      {
-         glm::vec3 quadVerts[4] = {
-            { -1000.0f, -1000.0f, 0.0f },
-            { -1000.0f,  1000.0f, 0.0f },
-            {  1000.0f,  1000.0f, 0.0f },
-            {  1000.0f, -1000.0f, 0.0f }
-         };
-
-         glm::mat4 mvpFace = projection * view * glm::mat4(1.0f);
-
-         glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpFace[0][0]);
-         glUniform4f(loc_uColor, 0.5f, 0.5f, 0.5f, 0.3f);
-
-         glBindVertexArray(faceVAO);
-         glBindBuffer(GL_ARRAY_BUFFER, faceVBO);
-         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quadVerts), quadVerts);
-         //glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-         for (int x = -100; x <= 100; x += 1)
-         {
-            if (x == 0)
-               continue;
-
-            glm::vec3 pos1 = glm::vec3((float)x, -1000.0, 0.0);
-            glm::vec3 pos2 = glm::vec3((float)x, 1000.0, 0.0);
-
-            glUniform4f(loc_uColor, 1.0f, 1.0f, 1.0f, 0.2f);
-
-            glm::vec3 line[2] = { pos1, pos2 };
-
-            glLineWidth(1.0);
-            glBindVertexArray(lineVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
-            glDrawArrays(GL_LINES, 0, 2);
-         }
-
-         for (int y = -100; y <= 100; y += 1)
-         {
-            if (y == 0)
-               continue;
-
-            glm::vec3 pos1 = glm::vec3(-1000.0, (float)y, 0.0);
-            glm::vec3 pos2 = glm::vec3(1000.0, (float)y, 0.0);
-
-            glUniform4f(loc_uColor, 1.0f, 1.0f, 1.0f, 0.2f);
-
-            glm::vec3 line[2] = { pos1, pos2 };
-
-            glLineWidth(1.0);
-            glBindVertexArray(lineVAO);
-            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
-            glDrawArrays(GL_LINES, 0, 2);
-         }
-      }
 
       // Draw axes
       if (draw_axes)
@@ -549,22 +511,6 @@ int main(int argc, char* argv[])
          glDrawArrays(GL_POINTS, 0, 1);
       }
 
-      // Draw cuboid wireframe
-      glm::mat4 model = glm::mat4(1.0f);
-      model = glm::translate(model, glm::vec3(entity.m_vPosition.data[0], entity.m_vPosition.data[1], entity.m_vPosition.data[2]));
-      model = glm::rotate(model, glm::radians(-entity_hdg), glm::vec3(0.0f, 0.0f, 1.0f));
-      model = glm::scale(model, glm::vec3(entity.m_pSize[0], entity.m_pSize[1], entity.m_pSize[2]));
-
-      glm::mat4 mvp = projection * view * model;
-      GLCALL(glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvp[0][0]));
-      GLCALL(glUniform4f(loc_uColor, 0.0f, 0.2f, 0.8f, 1.0f));
-
-      GLCALL(glBindVertexArray(cubeVAO));
-      GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
-      GLCALL(glDrawElements(GL_LINES, (GLsizei)unitIdx.size(), GL_UNSIGNED_INT, 0));
-      GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
-      GLCALL(glBindVertexArray(0));
-
       // Draw sphere position as a point
       GLCALL(glBindVertexArray(pointVAO));
       GLCALL(glBindBuffer(GL_ARRAY_BUFFER, pointVBO));
@@ -614,6 +560,82 @@ int main(int argc, char* argv[])
          glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quadVerts), quadVerts);
          glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
       }
+
+      // Draw ground
+      if (draw_ground_plane)
+      {
+         glm::vec3 quadVerts[4] = {
+            { -1000.0f, -1000.0f, 0.0f },
+            { -1000.0f,  1000.0f, 0.0f },
+            {  1000.0f,  1000.0f, 0.0f },
+            {  1000.0f, -1000.0f, 0.0f }
+         };
+
+         glm::mat4 mvpFace = projection * view * glm::mat4(1.0f);
+
+         glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvpFace[0][0]);
+         glUniform4f(loc_uColor, 0.5f, 0.5f, 0.5f, 0.3f);
+
+         glBindVertexArray(faceVAO);
+         glBindBuffer(GL_ARRAY_BUFFER, faceVBO);
+         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quadVerts), quadVerts);
+         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+         for (int x = -100; x <= 100; x += 1)
+         {
+            if (x == 0)
+               continue;
+
+            glm::vec3 pos1 = glm::vec3((float)x, -1000.0, 0.0);
+            glm::vec3 pos2 = glm::vec3((float)x, 1000.0, 0.0);
+
+            glUniform4f(loc_uColor, 1.0f, 1.0f, 1.0f, 0.2f);
+
+            glm::vec3 line[2] = { pos1, pos2 };
+
+            glLineWidth(2.0);
+            glBindVertexArray(lineVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+            glDrawArrays(GL_LINES, 0, 2);
+         }
+
+         for (int y = -100; y <= 100; y += 1)
+         {
+            if (y == 0)
+               continue;
+
+            glm::vec3 pos1 = glm::vec3(-1000.0, (float)y, 0.0);
+            glm::vec3 pos2 = glm::vec3(1000.0, (float)y, 0.0);
+
+            glUniform4f(loc_uColor, 1.0f, 1.0f, 1.0f, 0.2f);
+
+            glm::vec3 line[2] = { pos1, pos2 };
+
+            glLineWidth(1.0);
+            glBindVertexArray(lineVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(line), line);
+            glDrawArrays(GL_LINES, 0, 2);
+         }
+      }
+
+      // Draw cuboid wireframe
+      glm::mat4 model = glm::mat4(1.0f);
+      model = glm::translate(model, glm::vec3(entity.m_vPosition.data[0], entity.m_vPosition.data[1], entity.m_vPosition.data[2]));
+      model = glm::rotate(model, glm::radians(-entity_hdg), glm::vec3(0.0f, 0.0f, 1.0f));
+      model = glm::scale(model, glm::vec3(entity.m_pSize[0], entity.m_pSize[1], entity.m_pSize[2]));
+
+      glm::mat4 mvp = projection * view * model;
+      GLCALL(glUniformMatrix4fv(loc_uMVP, 1, GL_FALSE, &mvp[0][0]));
+      GLCALL(glUniform4f(loc_uColor, 0.0f, 0.0f, 1.0f, 1.0f));
+
+      GLCALL(glBindVertexArray(cubeVAO));
+      glLineWidth(3.0);
+      GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+      GLCALL(glDrawElements(GL_LINES, (GLsizei)unitIdx.size(), GL_UNSIGNED_INT, 0));
+      GLCALL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+      GLCALL(glBindVertexArray(0));
 
       // Render ImGui
       ImGui::Render();
