@@ -375,12 +375,12 @@ void C_cuboid::Roll( double x )
 
 void C_cuboid::SetYaw_D( double z ) // Degrees
 {
-   m_Yaw = z;
    SetYaw( z * PI_OVER_180 );
 }
 
 void C_cuboid::SetYaw  ( double z ) // Radians
 {
+   m_Yaw = z / PI_OVER_180;
    m_pOrientation[0][0] = 1.0; m_pOrientation[0][1] = 0.0;
    m_pOrientation[1][0] = 0.0; m_pOrientation[1][1] = 1.0;
    Yaw( z );
